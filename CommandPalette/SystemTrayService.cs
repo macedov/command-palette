@@ -35,7 +35,7 @@ internal sealed class SystemTrayService : IDisposable
         _menu.Items.Add(new Forms.ToolStripSeparator());
         _menu.Items.Add(CreateItem("Exit", exit));
 
-        _applicationIcon = LoadApplicationIcon();
+        _applicationIcon = ApplicationIconProvider.CreateIcon();
 
         _notifyIcon = new Forms.NotifyIcon
         {
@@ -46,21 +46,6 @@ internal sealed class SystemTrayService : IDisposable
         };
 
         _notifyIcon.DoubleClick += (_, _) => openPalette();
-    }
-
-    private static Drawing.Icon LoadApplicationIcon()
-    {
-        var executablePath = Environment.ProcessPath;
-
-        if (!string.IsNullOrWhiteSpace(executablePath))
-        {
-            var icon = Drawing.Icon.ExtractAssociatedIcon(executablePath);
-
-            if (icon is not null)
-                return icon;
-        }
-
-        return (Drawing.Icon)Drawing.SystemIcons.Application.Clone();
     }
 
     private static Forms.ToolStripMenuItem CreateItem(

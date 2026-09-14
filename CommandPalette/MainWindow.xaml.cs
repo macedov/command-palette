@@ -97,6 +97,7 @@ public partial class MainWindow : Window
         _settingsLoadError = settingsResult.Error;
 
         InitializeComponent();
+        ApplicationIconProvider.ApplyTo(this);
 
         SourceInitialized += OnSourceInitialized;
         Loaded += OnLoaded;

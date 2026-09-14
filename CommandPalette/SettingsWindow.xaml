@@ -2,7 +2,6 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Settings"
-        Icon="CommandPalette.ico"
         Width="800"
         Height="720"
         WindowStartupLocation="CenterScreen"

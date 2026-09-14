@@ -46,6 +46,7 @@ public partial class PresetEditorWindow : Window
                 .ToList();
 
         InitializeComponent();
+        ApplicationIconProvider.ApplyTo(this);
         WindowSystemMenu.Suppress(this);
 
         LoadPresets();

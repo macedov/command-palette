@@ -34,6 +34,7 @@ public partial class SettingsWindow : Window
         Action endHotkeyRecording)
     {
         InitializeComponent();
+        ApplicationIconProvider.ApplyTo(this);
         WindowSystemMenu.Suppress(this);
 
         _applySettings = applySettings;

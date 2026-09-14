@@ -4,8 +4,6 @@
         xmlns:local="clr-namespace:CommandPalette"
 
         Title="Presets"
-        Icon="CommandPalette.ico"
-
         Width="900"
         Height="620"
 

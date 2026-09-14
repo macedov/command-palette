@@ -15,6 +15,7 @@ public partial class HelpWindow : Window
         bool onboarding = false)
     {
         InitializeComponent();
+        ApplicationIconProvider.ApplyTo(this);
         WindowSystemMenu.Suppress(this);
 
         WindowTitleText.Text = onboarding
