@@ -1,3 +1,5 @@
 .idea/
 bin/
 obj/
+installer/output/
+PROJECT_HANDOFF.md
