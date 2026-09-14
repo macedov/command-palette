@@ -1,0 +1,397 @@
+<Window x:Class="CommandPalette.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Icon="CommandPalette.ico"
+        Width="800"
+        Height="720"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#151515"
+        Foreground="#DEDEDE"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        PreviewKeyUp="Window_PreviewKeyUp"
+        PreviewMouseWheel="Window_PreviewMouseWheel">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                         Color="#383838"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                         Color="#F2F2F2"/>
+        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                         Color="#303030"/>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#242424"/>
+            <Setter Property="Foreground" Value="#E5E5E5"/>
+            <Setter Property="CaretBrush" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#3A3A3A"/>
+            <Setter Property="Padding" Value="8,0"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#292929"/>
+            <Setter Property="Foreground" Value="#DDDDDD"/>
+            <Setter Property="BorderBrush" Value="#424242"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#353535"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#555555"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#202020"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#202020"/>
+            <Setter Property="Foreground" Value="#DDDDDD"/>
+            <Setter Property="BorderBrush" Value="#343434"/>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#DDDDDD"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2A2A2A"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#383838"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#202020"/>
+            <Setter Property="Foreground" Value="#DDDDDD"/>
+            <Setter Property="BorderBrush" Value="#343434"/>
+            <Setter Property="RowBackground" Value="#202020"/>
+            <Setter Property="AlternatingRowBackground" Value="#242424"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#303030"/>
+            <Setter Property="VerticalGridLinesBrush" Value="#303030"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#292929"/>
+            <Setter Property="Foreground" Value="#D8D8D8"/>
+            <Setter Property="BorderBrush" Value="#3A3A3A"/>
+        </Style>
+        <Style TargetType="DataGridRow">
+            <Setter Property="Foreground" Value="#DDDDDD"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2A2A2A"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#383838"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="DataGridCell">
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=Foreground}"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="#505050"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#DEDEDE"/>
+        </Style>
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="#AFAFAF"/>
+            <Setter Property="Background" Value="#1C1C1C"/>
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="#333333"
+                                BorderThickness="0,0,0,1"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder"
+                                        Property="Background"
+                                        Value="#292929"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border BorderBrush="#333333" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Background="#1C1C1C"
+                    BorderBrush="#303030"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <TextBlock Text="Settings"
+                               Margin="15,0"
+                               VerticalAlignment="Center"
+                               FontSize="15"
+                               FontWeight="SemiBold"/>
+                    <Button Width="42" Height="30"
+                            Margin="0,0,7,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Content="✕"
+                            Click="Cancel_Click"/>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1" Margin="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TabControl Background="Transparent"
+                            BorderBrush="#333333">
+                    <TabItem Header="General">
+                        <ScrollViewer x:Name="GeneralScrollViewer"
+                                      VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="18">
+                                <TextBlock Text="Global hotkey" FontWeight="SemiBold"/>
+                                <TextBlock Text="Edit directly or record a shortcut."
+                                           Foreground="#929292" Margin="0,3,0,7"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="100"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="HotkeyBox" Height="34"
+                                             VerticalContentAlignment="Center"
+                                             PreviewKeyDown="HotkeyBox_PreviewKeyDown"/>
+                                    <Button Grid.Column="2" Content="Record"
+                                            Click="RecordHotkey_Click"/>
+                                </Grid>
+
+                                <Border Margin="0,16,0,0" Padding="12"
+                                        Background="#1E1E1E"
+                                        BorderBrush="#303030" BorderThickness="1">
+                                    <StackPanel>
+                                        <CheckBox x:Name="StartWithWindowsBox"
+                                                  Content="Start Command Palette with Windows"/>
+                                        <CheckBox x:Name="HideWhenFocusLostBox"
+                                                  Margin="0,11,0,0"
+                                                  Content="Hide the palette when it loses focus"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid Margin="0,16,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="220"/>
+                                        <ColumnDefinition Width="100"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               Text="Maximum displayed results"/>
+                                    <TextBox x:Name="MaximumResultsBox" Grid.Column="1"
+                                             Height="32" VerticalContentAlignment="Center"/>
+                                </Grid>
+
+                                <TextBlock Text="Indexed folders" FontWeight="SemiBold"
+                                           Margin="0,20,0,7"/>
+                                <ListBox x:Name="IndexedFoldersList" Height="75"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                                    <Button Width="100" Height="30" Content="Add folder"
+                                            Click="AddIndexedFolder_Click"/>
+                                    <Button Width="90" Height="30" Margin="8,0,0,0"
+                                            Content="Remove" Click="RemoveIndexedFolder_Click"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Ignored folders" FontWeight="SemiBold"
+                                           Margin="0,18,0,7"/>
+                                <ListBox x:Name="IgnoredFoldersList" Height="65"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                                    <Button Width="100" Height="30" Content="Add folder"
+                                            Click="AddIgnoredFolder_Click"/>
+                                    <Button Width="90" Height="30" Margin="8,0,0,0"
+                                            Content="Remove" Click="RemoveIgnoredFolder_Click"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Ignored folder names" FontWeight="SemiBold"
+                                           Margin="0,18,0,7"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="90"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="IgnoredNameBox" Height="32"
+                                             VerticalContentAlignment="Center"
+                                             ToolTip="Example: node_modules"/>
+                                    <Button Grid.Column="2" Content="Add"
+                                            Click="AddIgnoredName_Click"/>
+                                </Grid>
+                                <ListBox x:Name="IgnoredNamesList" Height="60" Margin="0,7,0,0"/>
+                                <Button Width="90" Height="30" HorizontalAlignment="Left"
+                                        Margin="0,7,0,0" Content="Remove"
+                                        Click="RemoveIgnoredName_Click"/>
+
+                                <TextBlock Text="Custom applications" FontWeight="SemiBold"
+                                           Margin="0,20,0,3"/>
+                                <TextBlock Text="Custom executables appear in search and preset app selectors."
+                                           Foreground="#929292" Margin="0,0,0,7"/>
+                                <DataGrid x:Name="CustomAppsGrid" Height="135"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AlternationCount="2">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Name" Width="2*"
+                                            Binding="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <DataGridTextColumn Header="Executable path" Width="3*"
+                                            Binding="{Binding Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                                    <Button Width="120" Height="30" Content="Add .exe..."
+                                            Click="AddCustomApp_Click"/>
+                                    <Button Width="90" Height="30" Margin="8,0,0,0"
+                                            Content="Remove" Click="RemoveCustomApp_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Search">
+                        <Grid Margin="18">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Search providers" FontSize="18"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Foreground="#929292" Margin="0,4,0,12"
+                                           Text="Use a prefix followed by a query, such as g command palette."/>
+                            </StackPanel>
+                            <DataGrid x:Name="SearchProvidersGrid" Grid.Row="1"
+                                      AutoGenerateColumns="False" CanUserAddRows="False"
+                                      AlternationCount="2">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="On" Width="48"
+                                        Binding="{Binding Enabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Name" Width="120"
+                                        Binding="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Prefix" Width="75"
+                                        Binding="{Binding Prefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <DataGridTextColumn Header="Search URL template" Width="*"
+                                        Binding="{Binding SearchUrlTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,9,0,0">
+                                <Button Width="110" Height="31" Content="Add provider"
+                                        Click="AddProvider_Click"/>
+                                <Button Width="90" Height="31" Margin="8,0,0,0"
+                                        Content="Remove" Click="RemoveProvider_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Keybindings">
+                        <StackPanel Margin="18">
+                            <TextBlock Text="Result actions" FontSize="18"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Foreground="#929292" Margin="0,4,0,18"
+                                       Text="These shortcuts apply while the palette search box is active."/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="180"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="42"/>
+                                    <RowDefinition Height="42"/>
+                                    <RowDefinition Height="42"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock VerticalAlignment="Center" Text="Open / run"/>
+                                <TextBox x:Name="OpenBindingBox" Grid.Column="1" Height="32"
+                                         VerticalContentAlignment="Center"/>
+                                <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="Copy"/>
+                                <TextBox x:Name="CopyBindingBox" Grid.Row="1" Grid.Column="1"
+                                         Height="32" VerticalContentAlignment="Center"/>
+                                <TextBlock Grid.Row="2" VerticalAlignment="Center"
+                                           Text="Open terminal here"/>
+                                <TextBox x:Name="TerminalBindingBox" Grid.Row="2" Grid.Column="1"
+                                         Height="32" VerticalContentAlignment="Center"/>
+                            </Grid>
+                            <Button Width="150" Height="32" HorizontalAlignment="Left"
+                                    Margin="0,12,0,0" Content="Restore defaults"
+                                    Click="RestoreKeybindings_Click"/>
+                        </StackPanel>
+                    </TabItem>
+
+                    <TabItem Header="Features">
+                        <StackPanel Margin="18">
+                            <TextBlock Text="Palette features" FontSize="18"
+                                       FontWeight="SemiBold" Margin="0,0,0,18"/>
+                            <CheckBox x:Name="CalculatorEnabledBox"
+                                      Content="Inline calculator"/>
+                            <CheckBox x:Name="WindowsSettingsEnabledBox"
+                                      Margin="0,14,0,0"
+                                      Content="Windows Settings results"/>
+                            <CheckBox x:Name="SystemCommandsEnabledBox"
+                                      Margin="0,14,0,0"
+                                      Content="System commands"/>
+                            <CheckBox x:Name="ConfirmSystemActionsBox"
+                                      Margin="24,12,0,0"
+                                      Content="Confirm shutdown, restart and sign out"/>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+
+                <Grid Grid.Row="1" Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                               Foreground="#D08080" TextTrimming="CharacterEllipsis"/>
+                    <Button Grid.Column="1" Width="100" Height="36"
+                            Content="Save" Click="Save_Click"/>
+                    <Button Grid.Column="3" Width="100" Height="36"
+                            Content="Cancel" Click="Cancel_Click"/>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

@@ -3,15 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using Microsoft.Win32;
 
 namespace CommandPalette;
 
 public partial class PresetEditorWindow : Window
 {
-    public static Array ActionTypes { get; } =
-        Enum.GetValues(
-            typeof(PresetActionType)
-        );
+    public sealed record ActionTypeOption(
+        PresetActionType Value,
+        string Label
+    );
+
+    public static IReadOnlyList<ActionTypeOption> ActionTypes { get; } =
+    [
+        new(PresetActionType.OpenApp, "Open application"),
+        new(PresetActionType.OpenPath, "Open folder"),
+        new(PresetActionType.OpenUrl, "Open URL"),
+        new(PresetActionType.CloseApp, "Close application"),
+        new(PresetActionType.CloseAppWindows, "Close application windows"),
+        new(PresetActionType.CloseProcess, "Close process (advanced)")
+    ];
 
     private List<PresetDefinition> _presets = [];
 
@@ -19,16 +31,25 @@ public partial class PresetEditorWindow : Window
 
     private bool _changingSelection;
 
-    public PresetEditorWindow()
+    public IReadOnlyList<PaletteItem> KnownApps { get; }
+
+    public PresetEditorWindow(
+        IEnumerable<PaletteItem>? knownApps = null)
     {
+        KnownApps =
+            (knownApps ?? [])
+                .Where(item => item.Type == PaletteItemType.App)
+                .OrderBy(
+                    item => item.Name,
+                    StringComparer.OrdinalIgnoreCase
+                )
+                .ToList();
+
         InitializeComponent();
+        WindowSystemMenu.Suppress(this);
 
         LoadPresets();
     }
-
-    // ============================================================
-    // LOAD
-    // ============================================================
 
     private void LoadPresets()
     {
@@ -61,10 +82,6 @@ public partial class PresetEditorWindow : Window
             );
         }
     }
-
-    // ============================================================
-    // LIST
-    // ============================================================
 
     private void RefreshPresetList(
         PresetDefinition? selected = null)
@@ -102,10 +119,6 @@ public partial class PresetEditorWindow : Window
             _currentPreset
         );
     }
-
-    // ============================================================
-    // EDITOR
-    // ============================================================
 
     private void LoadPreset(
         PresetDefinition? preset)
@@ -172,10 +185,6 @@ public partial class PresetEditorWindow : Window
             true
         );
     }
-
-    // ============================================================
-    // PRESET CREATE / DELETE
-    // ============================================================
 
     private void NewPreset_Click(
         object sender,
@@ -292,10 +301,6 @@ public partial class PresetEditorWindow : Window
             index;
     }
 
-    // ============================================================
-    // ACTIONS
-    // ============================================================
-
     private void RefreshActions()
     {
         ActionsGrid.ItemsSource =
@@ -357,9 +362,72 @@ public partial class PresetEditorWindow : Window
         RefreshActions();
     }
 
-    // ============================================================
-    // SAVE
-    // ============================================================
+    private void BrowseActionPath_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is not Button
+            {
+                Tag: PresetAction action
+            })
+        {
+            return;
+        }
+
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Choose a folder",
+            Multiselect = false
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            action.Target = dialog.FolderName;
+        }
+    }
+
+    private void MoveActionUp_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        MoveSelectedAction(-1);
+    }
+
+    private void MoveActionDown_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        MoveSelectedAction(1);
+    }
+
+    private void MoveSelectedAction(
+        int offset)
+    {
+        if (_currentPreset is null ||
+            ActionsGrid.SelectedItem is not PresetAction action)
+        {
+            return;
+        }
+
+        CommitActionEdit();
+
+        var currentIndex =
+            _currentPreset.Actions.IndexOf(action);
+        var destinationIndex = currentIndex + offset;
+
+        if (destinationIndex < 0 ||
+            destinationIndex >= _currentPreset.Actions.Count)
+        {
+            return;
+        }
+
+        _currentPreset.Actions.RemoveAt(currentIndex);
+        _currentPreset.Actions.Insert(destinationIndex, action);
+
+        RefreshActions();
+        ActionsGrid.SelectedItem = action;
+        ActionsGrid.ScrollIntoView(action);
+    }
 
     private void Save_Click(
         object sender,
@@ -398,5 +466,27 @@ public partial class PresetEditorWindow : Window
         RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void Window_PreviewKeyDown(
+        object sender,
+        KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape)
+            return;
+
+        Close();
+        e.Handled = true;
+    }
+
+    private void TitleBar_MouseLeftButtonDown(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed &&
+            e.GetPosition(this).X < ActualWidth - 60)
+        {
+            DragMove();
+        }
     }
 }

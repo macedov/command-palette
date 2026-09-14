@@ -1,35 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CommandPalette;
 
 public static class WebSearch
 {
-    private static readonly Dictionary<string, SearchEngine> Engines =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["y"] = new SearchEngine(
-                "YouTube",
-                "https://www.youtube.com/results?search_query={0}"
-            ),
-
-            ["g"] = new SearchEngine(
-                "Google",
-                "https://www.google.com/search?q={0}"
-            ),
-
-            ["gh"] = new SearchEngine(
-                "GitHub",
-                "https://github.com/search?q={0}"
-            ),
-
-            ["r"] = new SearchEngine(
-                "Reddit",
-                "https://www.reddit.com/search/?q={0}"
-            )
-        };
-
-    public static PaletteItem? TryCreateResult(string input)
+    public static PaletteItem? TryCreateResult(
+        string input,
+        IEnumerable<SearchProviderSettings> providers)
     {
         if (string.IsNullOrWhiteSpace(input))
             return null;
@@ -42,53 +21,54 @@ public static class WebSearch
         var prefix = input[..firstSpace].Trim();
         var query = input[(firstSpace + 1)..].Trim();
 
-        if (string.IsNullOrWhiteSpace(query))
+        if (query.Length == 0)
             return null;
 
-        if (!Engines.TryGetValue(prefix, out var engine))
+        var provider = providers.FirstOrDefault(item =>
+            item.Enabled &&
+            item.Prefix.Equals(
+                prefix,
+                StringComparison.OrdinalIgnoreCase
+            ));
+
+        if (provider is null)
             return null;
 
-        var encodedQuery = Uri.EscapeDataString(query);
-
-        var url = string.Format(
-            engine.UrlFormat,
-            encodedQuery
+        var url = provider.SearchUrlTemplate.Replace(
+            "{query}",
+            Uri.EscapeDataString(query),
+            StringComparison.Ordinal
         );
 
         return new PaletteItem(
-            $"Search {engine.Name}: {query}",
+            $"Search {provider.Name}: {query}",
             url,
             PaletteItemType.WebSearch,
-            $"{engine.Name} Search"
+            $"{provider.Name} Search"
         );
     }
 
-    public static PaletteItem? TryCreateHint(string input)
+    public static PaletteItem? TryCreateHint(
+        string input,
+        IEnumerable<SearchProviderSettings> providers)
     {
         input = input.Trim();
 
-        if (!Engines.TryGetValue(input, out var engine))
+        var provider = providers.FirstOrDefault(item =>
+            item.Enabled &&
+            item.Prefix.Equals(
+                input,
+                StringComparison.OrdinalIgnoreCase
+            ));
+
+        if (provider is null)
             return null;
 
         return new PaletteItem(
-            $"{engine.Name} Search",
+            $"{provider.Name} Search",
             $"{input} <query>",
             PaletteItemType.Hint,
             $"{input} <query>"
         );
-    }
-}
-
-public class SearchEngine
-{
-    public string Name { get; }
-    public string UrlFormat { get; }
-
-    public SearchEngine(
-        string name,
-        string urlFormat)
-    {
-        Name = name;
-        UrlFormat = urlFormat;
     }
 }

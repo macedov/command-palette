@@ -43,7 +43,6 @@ public static class FuzzyMatcher
 
             score += 10;
 
-            // Letras juntas são melhores.
             score += consecutive * 5;
         }
 

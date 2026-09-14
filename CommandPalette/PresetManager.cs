@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Runtime.CompilerServices;
 
 namespace CommandPalette;
 
@@ -13,14 +15,54 @@ public enum PresetActionType
     OpenApp,
     OpenUrl,
     OpenPath,
-    CloseProcess
+    CloseProcess,
+    CloseApp,
+    CloseAppWindows
 }
 
-public class PresetAction
+public class PresetAction : INotifyPropertyChanged
 {
-    public PresetActionType Type { get; set; }
+    private PresetActionType _type;
+    private string _target = "";
 
-    public string Target { get; set; } = "";
+    public PresetActionType Type
+    {
+        get => _type;
+        set
+        {
+            if (_type == value)
+                return;
+
+            _type = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string Target
+    {
+        get => _target;
+        set
+        {
+            value ??= "";
+
+            if (_target == value)
+                return;
+
+            _target = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged(
+        [CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(
+            this,
+            new PropertyChangedEventArgs(propertyName)
+        );
+    }
 }
 
 public class PresetDefinition
@@ -76,10 +118,6 @@ public static class PresetManager
                 new JsonStringEnumConverter()
             }
         };
-
-    // ============================================================
-    // LOAD / RELOAD
-    // ============================================================
 
     public static PresetLoadResult Reload()
     {
@@ -146,7 +184,7 @@ public static class PresetManager
             return new PresetLoadResult(
                 false,
                 _presets.Count,
-                ex.Message
+                ConfigFileRecovery.DescribeFailure(ConfigPath, ex)
             );
         }
     }
@@ -159,10 +197,6 @@ public static class PresetManager
         Reload();
     }
 
-    // ============================================================
-    // CREATE CONFIG
-    // ============================================================
-
     private static void CreateEmptyConfig()
     {
         var config =
@@ -174,23 +208,30 @@ public static class PresetManager
                 JsonOptions
             );
 
+        var tempPath = ConfigPath + ".tmp";
+
         File.WriteAllText(
-            ConfigPath,
+            tempPath,
             json
         );
+
+        File.Move(tempPath, ConfigPath, overwrite: true);
 
         Debug.WriteLine(
             $"Created empty preset config: {ConfigPath}"
         );
     }
 
-    // ============================================================
-    // VALIDATION
-    // ============================================================
-
     private static void ValidateConfig(
         PresetConfig config)
     {
+        if (config.Presets is null)
+        {
+            throw new InvalidDataException(
+                "presets.json must contain a Presets list."
+            );
+        }
+
         var ids =
             new HashSet<string>(
                 StringComparer.OrdinalIgnoreCase
@@ -199,6 +240,13 @@ public static class PresetManager
         foreach (var preset
                  in config.Presets)
         {
+            if (preset is null)
+            {
+                throw new InvalidDataException(
+                    "presets.json contains an invalid preset."
+                );
+            }
+
             if (string.IsNullOrWhiteSpace(
                     preset.Id))
             {
@@ -223,9 +271,22 @@ public static class PresetManager
                 );
             }
 
-            foreach (var action
-                     in preset.Actions)
+            if (preset.Actions is null)
             {
+                throw new InvalidDataException(
+                    $"Preset '{preset.Id}' has no Actions list."
+                );
+            }
+
+            foreach (var action in preset.Actions)
+            {
+                if (action is null)
+                {
+                    throw new InvalidDataException(
+                        $"Preset '{preset.Id}' contains an invalid action."
+                    );
+                }
+
                 if (string.IsNullOrWhiteSpace(
                         action.Target))
                 {
@@ -237,10 +298,6 @@ public static class PresetManager
             }
         }
     }
-
-    // ============================================================
-    // ACCESS
-    // ============================================================
 
     public static IEnumerable<PaletteItem>
         GetPaletteItems()
@@ -309,9 +366,7 @@ public static PresetLoadResult SaveAll(
                 JsonOptions
             );
 
-        // Primeiro escreve em um temporário.
-        // Assim reduzimos a chance de deixar
-        // o JSON quebrado se algo der errado.
+        // Replace the file atomically to avoid partial JSON after a failure.
         var tempPath =
             ConfigPath + ".tmp";
 
